@@ -5,7 +5,6 @@ import { useHaptics } from '../hooks/useHaptics';
 
 interface HeaderProps {
   currentIndex: number;
-  totalCards: number;
   currentCategory: CategoryFilter;
   isDark: boolean;
   onToggleTheme: () => void;
@@ -17,7 +16,6 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   currentIndex,
-  totalCards,
   currentCategory,
   isDark,
   onToggleTheme,
@@ -28,12 +26,33 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const { light } = useHaptics();
 
+  const getCategoryLabel = () => {
+    switch (currentCategory) {
+      case 'ALL':
+        return 'All Bites';
+      case 'PUZZLES':
+        return 'Logic Puzzles';
+      case 'TRIVIA':
+        return 'Science Trivia';
+      case 'QUIZZES':
+        return 'Quick Quizzes';
+      case 'QUOTES':
+        return 'Timeless Wisdom';
+      case 'VOCAB':
+        return 'Word of the Hour';
+      case 'BOOKMARKS':
+        return 'Saved Bookmarks';
+      default:
+        return 'Brain Bites';
+    }
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-4 sm:px-6 py-3 pt-safe bg-transparent">
       {/* Brand & Category */}
       <div className="flex items-center gap-2.5">
         <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-500 via-sky-400 to-amber-400 p-[1.5px] shadow-sm">
-          <div className="w-full h-full rounded-[10px] bg-[#121417] dark:bg-[#121417] flex items-center justify-center">
+          <div className="w-full h-full rounded-[10px] bg-[#1E232B] dark:bg-[#1E232B] flex items-center justify-center">
             <span className="text-sm">🧠</span>
           </div>
         </div>
@@ -46,30 +65,27 @@ export const Header: React.FC<HeaderProps> = ({
               light();
               onOpenCategoryModal();
             }}
-            className="flex items-center gap-1 text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors mt-0.5"
+            className="flex items-center gap-1 text-[11.5px] font-semibold text-zinc-500 dark:text-zinc-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors mt-0.5"
           >
-            <Compass className="w-3 h-3" />
-            <span>{currentCategory === 'ALL' ? 'All 4,500 Cards' : currentCategory}</span>
+            <Compass className="w-3 h-3 text-purple-500" />
+            <span>{getCategoryLabel()}</span>
           </button>
         </div>
       </div>
 
-      {/* Index Pill & Quick Actions */}
+      {/* Index Pill & Quick Actions (Only current position, NO total count numbers) */}
       <div className="flex items-center gap-2">
-        {/* Card Number Pill */}
+        {/* Current Card Progress Pill */}
         <button
           onClick={() => {
             light();
             onOpenJumpModal();
           }}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold tracking-wide bg-zinc-200/70 dark:bg-zinc-800/80 text-zinc-800 dark:text-zinc-200 border border-black/5 dark:border-white/10 hover:border-purple-500/40 transition-all backdrop-blur-md active:scale-95"
-          title="Jump to card"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-extrabold tracking-wide bg-zinc-100/90 dark:bg-[#1E232B]/90 text-zinc-900 dark:text-zinc-100 border border-black/8 dark:border-white/12 hover:border-purple-500/40 transition-all backdrop-blur-md active:scale-95 shadow-sm"
+          title="Jump to Bite"
         >
-          <Search className="w-3 h-3 opacity-60" />
-          <span>
-            #{currentIndex + 1}
-            <span className="text-[10px] font-normal opacity-50 ml-0.5">/{totalCards}</span>
-          </span>
+          <Search className="w-3 h-3 opacity-60 text-purple-500" />
+          <span>#{currentIndex + 1}</span>
         </button>
 
         {/* Bookmarks Toggle */}
@@ -78,7 +94,7 @@ export const Header: React.FC<HeaderProps> = ({
             light();
             onOpenBookmarks();
           }}
-          className="relative p-2 rounded-full bg-zinc-200/70 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border border-black/5 dark:border-white/10 hover:text-amber-500 transition-all backdrop-blur-md active:scale-95"
+          className="relative p-2 rounded-full bg-zinc-100/90 dark:bg-[#1E232B]/90 text-zinc-700 dark:text-zinc-300 border border-black/8 dark:border-white/12 hover:text-amber-500 transition-all backdrop-blur-md active:scale-95"
           title="Bookmarks"
           aria-label="Bookmarks"
         >
@@ -96,7 +112,7 @@ export const Header: React.FC<HeaderProps> = ({
             light();
             onToggleTheme();
           }}
-          className="p-2 rounded-full bg-zinc-200/70 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border border-black/5 dark:border-white/10 hover:text-purple-500 transition-all backdrop-blur-md active:scale-95"
+          className="p-2 rounded-full bg-zinc-100/90 dark:bg-[#1E232B]/90 text-zinc-700 dark:text-zinc-300 border border-black/8 dark:border-white/12 hover:text-purple-500 transition-all backdrop-blur-md active:scale-95"
           title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           aria-label="Toggle theme"
         >

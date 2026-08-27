@@ -71,27 +71,6 @@ export default function App() {
     return allBites.filter((b) => b.type === targetType);
   }, [allBites, category, bookmarks]);
 
-  // Counts for each category
-  const counts = useMemo(() => {
-    const res: Record<CategoryFilter, number> = {
-      ALL: allBites.length,
-      PUZZLES: 0,
-      TRIVIA: 0,
-      QUIZZES: 0,
-      QUOTES: 0,
-      VOCAB: 0,
-      BOOKMARKS: bookmarks.length,
-    };
-    for (const b of allBites) {
-      if (b.type === 'puzzle') res.PUZZLES++;
-      else if (b.type === 'trivia') res.TRIVIA++;
-      else if (b.type === 'quiz') res.QUIZZES++;
-      else if (b.type === 'quote') res.QUOTES++;
-      else if (b.type === 'vocab') res.VOCAB++;
-    }
-    return res;
-  }, [allBites, bookmarks]);
-
   // Save last seen index when browsing 'ALL'
   const handleIndexChange = useCallback((newIdx: number) => {
     setCurrentIndex(newIdx);
@@ -123,12 +102,12 @@ export default function App() {
     return (
       <div className="h-screen w-screen flex flex-col items-center justify-center bg-paper-light dark:bg-paper-dark text-zinc-800 dark:text-zinc-200">
         <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-500 to-amber-400 p-[2px] animate-pulse">
-          <div className="w-full h-full rounded-[14px] bg-[#121417] flex items-center justify-center text-xl">
+          <div className="w-full h-full rounded-[14px] bg-[#1E232B] flex items-center justify-center text-xl">
             🧠
           </div>
         </div>
         <p className="mt-4 text-xs font-bold tracking-widest uppercase opacity-60">
-          Loading 4,500 Brain Bites...
+          Loading Brain Bites...
         </p>
       </div>
     );
@@ -146,7 +125,6 @@ export default function App() {
       {/* Header */}
       <Header
         currentIndex={currentIndex}
-        totalCards={filteredBites.length}
         currentCategory={category}
         isDark={isDark}
         onToggleTheme={toggleTheme}
@@ -159,7 +137,7 @@ export default function App() {
         bookmarkCount={bookmarks.length}
       />
 
-      {/* Main Interactive Deck */}
+      {/* Main Interactive Physical Card Deck */}
       <main className="flex-1 w-full h-full flex flex-col items-center justify-center pt-14 pb-20">
         {filteredBites.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
@@ -172,7 +150,7 @@ export default function App() {
               onClick={() => handleSelectCategory('ALL')}
               className="mt-5 px-5 py-2.5 rounded-full bg-purple-600 text-white text-xs font-bold active:scale-95 transition-all shadow-md"
             >
-              Browse All Cards
+              Browse All Bites
             </button>
           </div>
         ) : (
@@ -183,6 +161,7 @@ export default function App() {
             onChangeIndex={handleIndexChange}
             isBookmarked={isBookmarked}
             onToggleBookmark={toggleBookmark}
+            isDark={isDark}
           />
         )}
       </main>
@@ -204,7 +183,6 @@ export default function App() {
         onClose={() => setIsCategoryModalOpen(false)}
         currentCategory={category}
         onSelectCategory={handleSelectCategory}
-        counts={counts}
       />
 
       {/* Direct Jump Modal */}

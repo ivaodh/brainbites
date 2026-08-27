@@ -45,15 +45,15 @@ export const JumpModal: React.FC<JumpModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="absolute inset-0" onClick={onClose} />
 
-      <div className="relative z-10 w-full max-w-sm rounded-[32px] bg-white dark:bg-[#1E2228] border border-black/10 dark:border-white/10 shadow-2xl p-6 animate-in zoom-in-95 duration-200">
+      <div className="relative z-10 w-full max-w-sm rounded-[32px] bg-white dark:bg-[#1E232B] border border-black/10 dark:border-white/10 shadow-2xl p-6 animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/5">
           <div>
             <h2 className="text-base font-extrabold text-zinc-900 dark:text-zinc-50">
-              Jump to Card
+              Jump to Bite
             </h2>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Choose any card between 1 and {totalCards.toLocaleString()}
+              Enter any card number or scrub the timeline
             </p>
           </div>
           <button
@@ -74,7 +74,7 @@ export const JumpModal: React.FC<JumpModalProps> = ({
               type="number"
               min="1"
               max={totalCards}
-              placeholder={`e.g. 245`}
+              placeholder="e.g. 150"
               value={targetNumber}
               onChange={(e) => setTargetNumber(e.target.value)}
               className="flex-1 px-4 py-3 rounded-2xl bg-zinc-100 dark:bg-zinc-900 border border-black/10 dark:border-white/10 text-sm font-bold text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:border-purple-500"
@@ -88,14 +88,14 @@ export const JumpModal: React.FC<JumpModalProps> = ({
             </button>
           </div>
 
-          {/* Scrub Slider */}
+          {/* Scrub Slider (No total shown, only current card number) */}
           <div className="pt-2 space-y-2">
             <div className="flex items-center justify-between text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-              <span>Card #1</span>
-              <span className="font-extrabold text-purple-600 dark:text-purple-400">
-                #{currentIndex + 1}
+              <span>Start</span>
+              <span className="font-extrabold text-purple-600 dark:text-purple-400 text-sm">
+                Bite #{currentIndex + 1}
               </span>
-              <span>#{totalCards.toLocaleString()}</span>
+              <span>Ahead &rarr;</span>
             </div>
             <input
               type="range"
@@ -115,7 +115,7 @@ export const JumpModal: React.FC<JumpModalProps> = ({
               onRandom();
               onClose();
             }}
-            className="w-full py-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200 dark:hover:bg-zinc-700/80 text-zinc-800 dark:text-zinc-200 text-xs font-bold flex items-center justify-center gap-2 border border-black/5 dark:border-white/5 transition-all"
+            className="w-full py-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-bold flex items-center justify-center gap-2 border border-black/5 dark:border-white/5 transition-all"
           >
             <Shuffle className="w-3.5 h-3.5" />
             <span>Surprise Me (Random Bite)</span>
