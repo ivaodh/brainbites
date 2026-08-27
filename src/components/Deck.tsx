@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { ChevronUp } from 'lucide-react';
 import { BrainBite, AuraColor } from '../types';
 import { Card } from './Card';
@@ -25,219 +25,99 @@ export const Deck: React.FC<DeckProps> = ({
   isDark,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const activeCardRef = useRef<HTMLDivElement>(null);
-  const nextCardRef = useRef<HTMLDivElement>(null);
-  const prevCardRef = useRef<HTMLDivElement>(null);
+  const [containerHeight, setContainerHeight] = useState<number>(() => {
+    return typeof window !== 'undefined' ? window.innerHeight : 800;
+  });
 
-  // Gesture tracking refs
-  const isDragging = useRef<boolean>(false);
-  const startY = useRef<number>(0);
-  const currentY = useRef<number>(0);
-  const startTime = useRef<number>(0);
-  const isAnimating = useRef<boolean>(false);
-  const rafId = useRef<number | null>(null);
-
-  // Track drag direction state to show only the relevant incoming card during drag
-  const [dragDirection, setDragDirection] = useState<'up' | 'down' | null>(null);
+  const isScrollingProgrammatically = useRef<boolean>(false);
+  const scrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastReportedIndex = useRef<number>(currentIndex);
 
   const { light } = useHaptics();
 
-  // Reset all card styles to clean idle state
-  const resetCardStyles = useCallback(() => {
-    if (activeCardRef.current) {
-      activeCardRef.current.style.transition = 'transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.28s ease-out';
-      activeCardRef.current.style.transform = 'translate3d(0, 0, 0)';
-      activeCardRef.current.style.opacity = '1';
-    }
-    if (nextCardRef.current) {
-      nextCardRef.current.style.transition = 'transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.28s ease-out';
-      nextCardRef.current.style.transform = 'translate3d(0, calc(100% + 32px), 0)';
-      nextCardRef.current.style.opacity = '0';
-    }
-    if (prevCardRef.current) {
-      prevCardRef.current.style.transition = 'transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.28s ease-out';
-      prevCardRef.current.style.transform = 'translate3d(0, calc(-100% - 32px), 0)';
-      prevCardRef.current.style.opacity = '0';
-    }
-    setDragDirection(null);
+  // Measure container height accurately
+  useEffect(() => {
+    const updateHeight = () => {
+      if (containerRef.current) {
+        const h = containerRef.current.clientHeight;
+        if (h > 0) setContainerHeight(h);
+      }
+    };
+
+    updateHeight();
+    window.addEventListener('resize', updateHeight);
+
+    const observer = new ResizeObserver(updateHeight);
+    if (containerRef.current) observer.observe(containerRef.current);
+
+    return () => {
+      window.removeEventListener('resize', updateHeight);
+      observer.disconnect();
+    };
   }, []);
 
-  // Update card positions during drag with 120fps direct transform
-  const updateDragTransforms = (diffY: number) => {
-    if (rafId.current) cancelAnimationFrame(rafId.current);
+  // Sync scroll position when currentIndex changes externally (buttons, jump, random)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || containerHeight <= 0) return;
 
-    rafId.current = requestAnimationFrame(() => {
-      const isTopBound = currentIndex === 0 && diffY > 0;
-      const isBottomBound = currentIndex === bites.length - 1 && diffY < 0;
-      const resistance = isTopBound || isBottomBound ? 0.25 : 1;
-      const effectiveY = diffY * resistance;
+    const targetTop = currentIndex * containerHeight;
+    const currentTop = container.scrollTop;
 
-      if (effectiveY < -4) {
-        if (dragDirection !== 'up') setDragDirection('up');
-      } else if (effectiveY > 4) {
-        if (dragDirection !== 'down') setDragDirection('down');
-      }
+    if (Math.abs(currentTop - targetTop) > 6) {
+      isScrollingProgrammatically.current = true;
+      lastReportedIndex.current = currentIndex;
 
-      // Active Card follows finger
-      if (activeCardRef.current) {
-        activeCardRef.current.style.transition = 'none';
-        activeCardRef.current.style.transform = `translate3d(0, ${effectiveY}px, 0)`;
-        activeCardRef.current.style.opacity = '1';
-      }
+      container.scrollTo({
+        top: targetTop,
+        behavior: 'smooth',
+      });
 
-      // Incoming Next Card (cleanly positioned below active card)
-      if (effectiveY < 0 && nextCardRef.current) {
-        nextCardRef.current.style.transition = 'none';
-        nextCardRef.current.style.transform = `translate3d(0, calc(100% + 24px + ${effectiveY}px), 0)`;
-        nextCardRef.current.style.opacity = '1';
-      }
+      if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+      scrollTimeout.current = setTimeout(() => {
+        isScrollingProgrammatically.current = false;
+      }, 400);
+    }
+  }, [currentIndex, containerHeight]);
 
-      // Incoming Prev Card (cleanly positioned above active card)
-      if (effectiveY > 0 && prevCardRef.current) {
-        prevCardRef.current.style.transition = 'none';
-        prevCardRef.current.style.transform = `translate3d(0, calc(-100% - 24px + ${effectiveY}px), 0)`;
-        prevCardRef.current.style.opacity = '1';
-      }
-    });
-  };
+  // Handle native scroll and snap change detection
+  const handleScroll = useCallback(() => {
+    if (isScrollingProgrammatically.current || containerHeight <= 0) return;
 
-  const handleNext = useCallback(() => {
-    if (currentIndex < bites.length - 1 && !isAnimating.current) {
-      isAnimating.current = true;
-      setDragDirection('up');
+    const container = containerRef.current;
+    if (!container) return;
+
+    const scrollTop = container.scrollTop;
+    const newIdx = Math.round(scrollTop / containerHeight);
+
+    if (newIdx >= 0 && newIdx < bites.length && newIdx !== lastReportedIndex.current) {
+      lastReportedIndex.current = newIdx;
       light();
-
-      // Animate active card out to top
-      if (activeCardRef.current) {
-        activeCardRef.current.style.transition = 'transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease-out';
-        activeCardRef.current.style.transform = 'translate3d(0, calc(-100% - 32px), 0)';
-        activeCardRef.current.style.opacity = '0';
-      }
-
-      // Animate next card into view from bottom
-      if (nextCardRef.current) {
-        nextCardRef.current.style.transition = 'transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease-out';
-        nextCardRef.current.style.transform = 'translate3d(0, 0, 0)';
-        nextCardRef.current.style.opacity = '1';
-      }
-
-      setTimeout(() => {
-        onChangeIndex(currentIndex + 1);
-        resetCardStyles();
-        isAnimating.current = false;
-      }, 290);
+      onChangeIndex(newIdx);
     }
-  }, [currentIndex, bites.length, onChangeIndex, light, resetCardStyles]);
-
-  const handlePrev = useCallback(() => {
-    if (currentIndex > 0 && !isAnimating.current) {
-      isAnimating.current = true;
-      setDragDirection('down');
-      light();
-
-      // Animate active card out to bottom
-      if (activeCardRef.current) {
-        activeCardRef.current.style.transition = 'transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease-out';
-        activeCardRef.current.style.transform = 'translate3d(0, calc(100% + 32px), 0)';
-        activeCardRef.current.style.opacity = '0';
-      }
-
-      // Animate prev card into view from top
-      if (prevCardRef.current) {
-        prevCardRef.current.style.transition = 'transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease-out';
-        prevCardRef.current.style.transform = 'translate3d(0, 0, 0)';
-        prevCardRef.current.style.opacity = '1';
-      }
-
-      setTimeout(() => {
-        onChangeIndex(currentIndex - 1);
-        resetCardStyles();
-        isAnimating.current = false;
-      }, 290);
-    }
-  }, [currentIndex, onChangeIndex, light, resetCardStyles]);
-
-  // Pointer gesture handlers
-  const onPointerDown = (e: React.PointerEvent) => {
-    if (isAnimating.current) return;
-    isDragging.current = true;
-    startY.current = e.clientY;
-    currentY.current = e.clientY;
-    startTime.current = Date.now();
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-  };
-
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!isDragging.current || isAnimating.current) return;
-    currentY.current = e.clientY;
-    const diff = currentY.current - startY.current;
-    updateDragTransforms(diff);
-  };
-
-  const onPointerUp = (e: React.PointerEvent) => {
-    if (!isDragging.current || isAnimating.current) return;
-    isDragging.current = false;
-    (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
-
-    const diff = currentY.current - startY.current;
-    const duration = Date.now() - startTime.current;
-    const velocity = Math.abs(diff) / Math.max(duration, 1);
-
-    const SWIPE_THRESHOLD = 50;
-    const isFlick = velocity > 0.35 && Math.abs(diff) > 20;
-
-    if ((diff < -SWIPE_THRESHOLD || (isFlick && diff < 0)) && currentIndex < bites.length - 1) {
-      handleNext();
-    } else if ((diff > SWIPE_THRESHOLD || (isFlick && diff > 0)) && currentIndex > 0) {
-      handlePrev();
-    } else {
-      resetCardStyles();
-    }
-  };
+  }, [bites.length, containerHeight, onChangeIndex, light]);
 
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const container = containerRef.current;
+      if (!container || containerHeight <= 0) return;
+
       if (e.key === 'ArrowDown' || e.key === ' ' || e.key === 'j') {
         e.preventDefault();
-        handleNext();
+        if (currentIndex < bites.length - 1) {
+          onChangeIndex(currentIndex + 1);
+        }
       } else if (e.key === 'ArrowUp' || e.key === 'k') {
         e.preventDefault();
-        handlePrev();
+        if (currentIndex > 0) {
+          onChangeIndex(currentIndex - 1);
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleNext, handlePrev]);
-
-  // Mouse Wheel / Trackpad scroll listener
-  useEffect(() => {
-    let lastWheelTime = 0;
-    const handleWheel = (e: WheelEvent) => {
-      const now = Date.now();
-      if (now - lastWheelTime < 420 || isAnimating.current) return;
-
-      if (Math.abs(e.deltaY) > 28) {
-        lastWheelTime = now;
-        if (e.deltaY > 0) {
-          handleNext();
-        } else {
-          handlePrev();
-        }
-      }
-    };
-
-    const node = containerRef.current;
-    if (node) {
-      node.addEventListener('wheel', handleWheel, { passive: true });
-      return () => node.removeEventListener('wheel', handleWheel);
-    }
-  }, [handleNext, handlePrev]);
-
-  // Clean initial state on index change
-  useEffect(() => {
-    resetCardStyles();
-  }, [currentIndex, resetCardStyles]);
+  }, [currentIndex, bites.length, containerHeight, onChangeIndex]);
 
   if (!bites || bites.length === 0) {
     return (
@@ -247,20 +127,17 @@ export const Deck: React.FC<DeckProps> = ({
     );
   }
 
-  const currentBite = bites[currentIndex];
-  const nextBite = currentIndex < bites.length - 1 ? bites[currentIndex + 1] : null;
-  const prevBite = currentIndex > 0 ? bites[currentIndex - 1] : null;
+  // Virtual window calculation (renders 7 cards around current view for 0 memory overhead)
+  const windowSize = 3;
+  const startIdx = Math.max(0, currentIndex - windowSize);
+  const endIdx = Math.min(bites.length, currentIndex + windowSize + 1);
+
+  const topSpacerHeight = startIdx * containerHeight;
+  const bottomSpacerHeight = (bites.length - endIdx) * containerHeight;
 
   return (
-    <div
-      ref={containerRef}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
-      className="relative flex-1 w-full h-full flex flex-col items-center justify-center overflow-hidden touch-none select-none cursor-grab active:cursor-grabbing"
-    >
-      {/* Dynamic Ambient Background Aura Glow */}
+    <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden">
+      {/* Ambient Background Aura Radial Glow */}
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[580px] h-[580px] rounded-full pointer-events-none blur-[150px] opacity-25 dark:opacity-40 transition-colors duration-700 ease-out"
         style={{
@@ -268,71 +145,52 @@ export const Deck: React.FC<DeckProps> = ({
         }}
       />
 
-      {/* Clean Physical Card Stage (Single crisp card when idle, clean motion during swipe) */}
-      <div className="relative z-10 w-full max-w-[440px] flex items-center justify-center px-4 will-change-transform">
-        {/* PREVIOUS CARD (only rendered above when pulling down or during prev animation) */}
-        {prevBite && (
-          <div
-            ref={prevCardRef}
-            className={`absolute inset-x-0 pointer-events-none will-change-transform ${
-              dragDirection === 'down' ? 'visible' : 'invisible'
-            }`}
-            style={{
-              transform: 'translate3d(0, calc(-100% - 32px), 0)',
-              opacity: 0,
-            }}
-          >
-            <Card
-              bite={prevBite}
-              aura={getAuraForIndex(currentIndex - 1)}
-              isBookmarked={isBookmarked(prevBite)}
-              onToggleBookmark={() => {}}
-              index={currentIndex - 1}
-              isDark={isDark}
-            />
-          </div>
+      {/* Native Continuous Vertical Scroll-Snap Track */}
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className="relative z-10 w-full h-full overflow-y-auto no-scrollbar overscroll-y-contain select-none"
+        style={{
+          scrollSnapType: 'y mandatory',
+          scrollBehavior: 'smooth',
+        }}
+      >
+        {/* Top Virtual Spacer */}
+        {topSpacerHeight > 0 && (
+          <div style={{ height: `${topSpacerHeight}px` }} aria-hidden="true" />
         )}
 
-        {/* ACTIVE CARD (The only card visible when idle) */}
-        <div
-          ref={activeCardRef}
-          className="w-full relative z-20 will-change-transform"
-          style={{
-            transform: 'translate3d(0, 0, 0)',
-            opacity: 1,
-          }}
-        >
-          <Card
-            bite={currentBite}
-            aura={currentAura}
-            isBookmarked={isBookmarked(currentBite)}
-            onToggleBookmark={() => onToggleBookmark(currentBite)}
-            index={currentIndex}
-            isDark={isDark}
-          />
-        </div>
+        {/* Visible Window of Cards in Continuous Physical Sequence */}
+        {bites.slice(startIdx, endIdx).map((bite, i) => {
+          const actualIndex = startIdx + i;
+          const aura = getAuraForIndex(actualIndex);
 
-        {/* NEXT CARD (only rendered below when pulling up or during next animation) */}
-        {nextBite && (
-          <div
-            ref={nextCardRef}
-            className={`absolute inset-x-0 pointer-events-none will-change-transform ${
-              dragDirection === 'up' ? 'visible' : 'invisible'
-            }`}
-            style={{
-              transform: 'translate3d(0, calc(100% + 32px), 0)',
-              opacity: 0,
-            }}
-          >
-            <Card
-              bite={nextBite}
-              aura={getAuraForIndex(currentIndex + 1)}
-              isBookmarked={isBookmarked(nextBite)}
-              onToggleBookmark={() => {}}
-              index={currentIndex + 1}
-              isDark={isDark}
-            />
-          </div>
+          return (
+            <div
+              key={`${actualIndex}_${bite.text.substring(0, 15)}`}
+              data-card-index={actualIndex}
+              className="w-full flex items-center justify-center px-4"
+              style={{
+                height: `${containerHeight}px`,
+                scrollSnapAlign: 'center',
+                scrollSnapStop: 'always',
+              }}
+            >
+              <Card
+                bite={bite}
+                aura={aura}
+                isBookmarked={isBookmarked(bite)}
+                onToggleBookmark={() => onToggleBookmark(bite)}
+                index={actualIndex}
+                isDark={isDark}
+              />
+            </div>
+          );
+        })}
+
+        {/* Bottom Virtual Spacer */}
+        {bottomSpacerHeight > 0 && (
+          <div style={{ height: `${bottomSpacerHeight}px` }} aria-hidden="true" />
         )}
       </div>
 
@@ -340,7 +198,7 @@ export const Deck: React.FC<DeckProps> = ({
       <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1 opacity-50 hover:opacity-90 transition-opacity pointer-events-none">
         <div className="flex items-center gap-1 text-[11px] font-bold text-zinc-500 dark:text-zinc-400">
           <ChevronUp className="w-3.5 h-3.5 animate-bounce" />
-          <span>Swipe for next</span>
+          <span>Swipe or scroll for next</span>
         </div>
       </div>
     </div>

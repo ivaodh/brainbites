@@ -23,7 +23,7 @@ export default function App() {
   const [isJumpModalOpen, setIsJumpModalOpen] = useState<boolean>(false);
 
   // Custom Hooks
-  const { isDark, toggleTheme, syncStatusBarAura } = useTheme();
+  const { isDark, toggleTheme } = useTheme();
   const { bookmarks, isBookmarked, toggleBookmark } = useBookmarks();
 
   // Load dataset
@@ -74,11 +74,6 @@ export default function App() {
   // Current Aura Color
   const currentAura = useMemo(() => getAuraForIndex(currentIndex), [currentIndex]);
 
-  // Dynamically sync Phone Status Bar & Notch with Aura Shade
-  useEffect(() => {
-    syncStatusBarAura(currentAura.hex, isDark);
-  }, [currentAura, isDark, syncStatusBarAura]);
-
   // Save last seen index when browsing 'ALL'
   const handleIndexChange = useCallback((newIdx: number) => {
     setCurrentIndex(newIdx);
@@ -128,11 +123,10 @@ export default function App() {
       {/* PWA Install Banner */}
       <PwaInstallBanner />
 
-      {/* Header with Dynamic Status Bar Aura Bloom */}
+      {/* Header */}
       <Header
         currentIndex={currentIndex}
         currentCategory={category}
-        currentAura={currentAura}
         isDark={isDark}
         onToggleTheme={toggleTheme}
         onOpenCategoryModal={() => setIsCategoryModalOpen(true)}
@@ -144,8 +138,8 @@ export default function App() {
         bookmarkCount={bookmarks.length}
       />
 
-      {/* Main Interactive Physical Card Deck */}
-      <main className="flex-1 w-full h-full flex flex-col items-center justify-center pt-14 pb-20">
+      {/* Main Continuous Vertical Scroll-Snap Deck */}
+      <main className="flex-1 w-full h-full flex flex-col items-center justify-center">
         {filteredBites.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
             <span className="text-4xl mb-3">⭐</span>

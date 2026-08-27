@@ -1,12 +1,11 @@
 import React from 'react';
 import { Sun, Moon, Bookmark, Compass, Search } from 'lucide-react';
-import { CategoryFilter, AuraColor } from '../types';
+import { CategoryFilter } from '../types';
 import { useHaptics } from '../hooks/useHaptics';
 
 interface HeaderProps {
   currentIndex: number;
   currentCategory: CategoryFilter;
-  currentAura: AuraColor;
   isDark: boolean;
   onToggleTheme: () => void;
   onOpenCategoryModal: () => void;
@@ -18,7 +17,6 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   currentIndex,
   currentCategory,
-  currentAura,
   isDark,
   onToggleTheme,
   onOpenCategoryModal,
@@ -50,15 +48,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-4 sm:px-6 py-3.5 pt-safe bg-white/20 dark:bg-black/20 backdrop-blur-md border-b border-black/5 dark:border-white/5 transition-colors duration-500">
-      {/* Top Bar Ambient Dynamic Aura Bloom (Extends Aura shade into Phone Status Bar & Notch) */}
-      <div
-        className="absolute top-0 left-0 right-0 h-32 pointer-events-none -z-10 transition-all duration-700 blur-2xl opacity-30 dark:opacity-45"
-        style={{
-          background: `radial-gradient(ellipse 100% 120% at 50% -20%, ${currentAura.hex}, transparent 75%)`,
-        }}
-      />
-
+    <header className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-4 sm:px-6 py-3.5 pt-safe bg-white/40 dark:bg-[#121417]/60 backdrop-blur-xl border-b border-black/5 dark:border-white/5 transition-colors duration-500">
       {/* Brand & Category */}
       <div className="flex items-center gap-2.5">
         <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-500 via-sky-400 to-amber-400 p-[1.5px] shadow-sm flex-shrink-0">
