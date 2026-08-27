@@ -1,0 +1,53 @@
+# 🧠 Brain Bites — Standalone PWA
+
+A high-performance, offline-first Progressive Web App (PWA) delivering **4,500+ genuinely unique and fact-checked Brain Bites** across five curated formats:
+- 🔢 **1,100 Lateral Thinking & Logic Puzzles** (with interactive tap-to-reveal solutions)
+- 🧠 **1,250 Science, Nature & Cosmos Trivia**
+- ⚡ **1,050 Interactive Multi-Domain Quizzes**
+- 💭 **550 Timeless Quotes & Philosophical Wisdom**
+- 📖 **550 Words of the Hour & Untranslatable Concepts**
+
+---
+
+## ✨ Key Features
+
+- **🌓 Dark & Light Modes**: Seamless theme switcher respecting system preferences with zero Flash of Unstyled Content (FOUC).
+- **📱 100% Offline PWA**: Installable to iOS/Android home screen. Works on airplanes, subways, and off-grid.
+- **💾 Instant Resume**: Automatically remembers the user's exact last-viewed card across browser restarts and device reboots via `localStorage`.
+- **✨ Aura Freq Visuals**: Dynamic color-morphing ambient radial glows with paper grain texture backdrop.
+- **🎉 Interactive Reveals**: Tap-to-reveal answers for quizzes & puzzles with micro-confetti celebrations and tactile Web Haptics (`navigator.vibrate`).
+- **🔖 Bookmarks / Favorites**: Save favorite bites locally for quick reference.
+- **🚀 Ultra-Fast & Zero-Cost**: 100% static client bundle on Vercel with 0ms database latency.
+
+---
+
+## 🛠️ Local Development
+
+```bash
+# Navigate to project
+cd afiman/Brainbites
+
+# Install dependencies (already installed)
+npm install
+
+# Start local dev server (opens at http://localhost:3000)
+npm run dev
+
+# Build for production
+npm run build
+```
+
+---
+
+## 🚀 Deploy to Vercel (Free & Instant)
+
+### Option 1: Using Vercel CLI
+```bash
+npx vercel
+```
+
+### Option 2: Using GitHub & Vercel Dashboard
+1. Push this folder to a GitHub repository.
+2. Go to [vercel.com](https://vercel.com) $\rightarrow$ **Add New Project** $\rightarrow$ Import your repo.
+3. Framework Preset: **Vite** (automatically detected).
+4. Click **Deploy** — your PWA is live with automatic SSL, global edge CDN, and offline caching!
