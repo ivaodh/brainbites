@@ -10,7 +10,7 @@ import { CategoryModal } from './components/CategoryModal';
 import { JumpModal } from './components/JumpModal';
 import { PwaInstallBanner } from './components/PwaInstallBanner';
 
-const LAST_INDEX_KEY = 'brainbites_last_seen_index';
+const LAST_INDEX_KEY = 'brainbits_last_seen_index';
 
 export default function App() {
   const [allBites, setAllBites] = useState<BrainBite[]>([]);
@@ -23,7 +23,7 @@ export default function App() {
   const [isJumpModalOpen, setIsJumpModalOpen] = useState<boolean>(false);
 
   // Custom Hooks
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark, toggleTheme, syncStatusBarAura } = useTheme();
   const { bookmarks, isBookmarked, toggleBookmark } = useBookmarks();
 
   // Load dataset
@@ -71,6 +71,14 @@ export default function App() {
     return allBites.filter((b) => b.type === targetType);
   }, [allBites, category, bookmarks]);
 
+  // Current Aura Color
+  const currentAura = useMemo(() => getAuraForIndex(currentIndex), [currentIndex]);
+
+  // Dynamically sync Phone Status Bar & Notch with Aura Shade
+  useEffect(() => {
+    syncStatusBarAura(currentAura.hex, isDark);
+  }, [currentAura, isDark, syncStatusBarAura]);
+
   // Save last seen index when browsing 'ALL'
   const handleIndexChange = useCallback((newIdx: number) => {
     setCurrentIndex(newIdx);
@@ -96,8 +104,6 @@ export default function App() {
     }
   };
 
-  const currentAura = getAuraForIndex(currentIndex);
-
   if (loading) {
     return (
       <div className="h-screen w-screen flex flex-col items-center justify-center bg-paper-light dark:bg-paper-dark text-zinc-800 dark:text-zinc-200">
@@ -107,7 +113,7 @@ export default function App() {
           </div>
         </div>
         <p className="mt-4 text-xs font-bold tracking-widest uppercase opacity-60">
-          Loading Brain Bites...
+          Loading BrainBits...
         </p>
       </div>
     );
@@ -122,10 +128,11 @@ export default function App() {
       {/* PWA Install Banner */}
       <PwaInstallBanner />
 
-      {/* Header */}
+      {/* Header with Dynamic Status Bar Aura Bloom */}
       <Header
         currentIndex={currentIndex}
         currentCategory={category}
+        currentAura={currentAura}
         isDark={isDark}
         onToggleTheme={toggleTheme}
         onOpenCategoryModal={() => setIsCategoryModalOpen(true)}
@@ -144,13 +151,13 @@ export default function App() {
             <span className="text-4xl mb-3">⭐</span>
             <h3 className="text-lg font-bold">No Bookmarks Saved</h3>
             <p className="text-xs text-zinc-500 mt-1 max-w-xs">
-              Tap the bookmark icon on any Brain Bite card to save your favorite insights here.
+              Tap the bookmark icon on any BrainBit to save your favorite insights here.
             </p>
             <button
               onClick={() => handleSelectCategory('ALL')}
               className="mt-5 px-5 py-2.5 rounded-full bg-purple-600 text-white text-xs font-bold active:scale-95 transition-all shadow-md"
             >
-              Browse All Bites
+              Browse All Bits
             </button>
           </div>
         ) : (

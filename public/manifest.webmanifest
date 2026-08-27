@@ -1,7 +1,7 @@
 {
-  "name": "Brain Bites — Daily Mind Fuel",
-  "short_name": "Brain Bites",
-  "description": "4,500+ genuine brain teasers, verified trivia, quizzes, wisdom, and profound vocabulary.",
+  "name": "BrainBits — Daily Mind Fuel",
+  "short_name": "BrainBits",
+  "description": "Infinite stream of genuine brain teasers, verified science trivia, quizzes, timeless wisdom, and profound vocabulary.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#121417",

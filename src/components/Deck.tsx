@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { ChevronUp } from 'lucide-react';
 import { BrainBite, AuraColor } from '../types';
 import { Card } from './Card';
@@ -25,44 +25,168 @@ export const Deck: React.FC<DeckProps> = ({
   isDark,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const touchStartY = useRef<number | null>(null);
-  const touchCurrentY = useRef<number | null>(null);
-  const touchStartTime = useRef<number>(0);
+  const activeCardRef = useRef<HTMLDivElement>(null);
+  const nextCardRef = useRef<HTMLDivElement>(null);
+  const prevCardRef = useRef<HTMLDivElement>(null);
 
-  const [dragOffset, setDragOffset] = useState<number>(0);
-  const [slideDirection, setSlideDirection] = useState<'next' | 'prev' | null>(null);
-  const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
+  // Gesture tracking refs (zero React re-render lag)
+  const isDragging = useRef<boolean>(false);
+  const startY = useRef<number>(0);
+  const currentY = useRef<number>(0);
+  const startTime = useRef<number>(0);
+  const isAnimating = useRef<boolean>(false);
+  const rafId = useRef<number | null>(null);
+
   const { light } = useHaptics();
 
+  // Reset transforms cleanly
+  const resetCardStyles = useCallback(() => {
+    if (activeCardRef.current) {
+      activeCardRef.current.style.transition = 'transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.32s ease-out';
+      activeCardRef.current.style.transform = 'translate3d(0, 0, 0) scale(1) rotate(0deg)';
+      activeCardRef.current.style.opacity = '1';
+    }
+    if (nextCardRef.current) {
+      nextCardRef.current.style.transition = 'transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.32s ease-out';
+      nextCardRef.current.style.transform = 'translate3d(0, 22px, 0) scale(0.92)';
+      nextCardRef.current.style.opacity = '0.5';
+    }
+    if (prevCardRef.current) {
+      prevCardRef.current.style.transition = 'transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.32s ease-out';
+      prevCardRef.current.style.transform = 'translate3d(0, -110%, 0) scale(0.92)';
+      prevCardRef.current.style.opacity = '0';
+    }
+  }, []);
+
+  // Update card positions during drag using direct GPU transform (120fps)
+  const updateDragTransforms = (diffY: number) => {
+    if (rafId.current) cancelAnimationFrame(rafId.current);
+
+    rafId.current = requestAnimationFrame(() => {
+      const isTopBound = currentIndex === 0 && diffY > 0;
+      const isBottomBound = currentIndex === bites.length - 1 && diffY < 0;
+      const resistance = isTopBound || isBottomBound ? 0.25 : 1;
+      const effectiveY = diffY * resistance;
+
+      const progress = Math.min(Math.abs(effectiveY) / 220, 1);
+
+      if (activeCardRef.current) {
+        activeCardRef.current.style.transition = 'none';
+        const rotate = effectiveY * 0.015;
+        const scale = 1 - Math.abs(effectiveY) * 0.0003;
+        activeCardRef.current.style.transform = `translate3d(0, ${effectiveY}px, 0) scale(${scale}) rotate(${rotate}deg)`;
+        activeCardRef.current.style.opacity = `${1 - progress * 0.2}`;
+      }
+
+      if (effectiveY < 0 && nextCardRef.current) {
+        // Dragging UP -> Bring NEXT card into focus
+        nextCardRef.current.style.transition = 'none';
+        const nextY = 22 - 22 * progress;
+        const nextScale = 0.92 + 0.08 * progress;
+        const nextOpacity = 0.5 + 0.5 * progress;
+        nextCardRef.current.style.transform = `translate3d(0, ${nextY}px, 0) scale(${nextScale})`;
+        nextCardRef.current.style.opacity = `${nextOpacity}`;
+      } else if (effectiveY > 0 && prevCardRef.current) {
+        // Dragging DOWN -> Bring PREV card into focus
+        prevCardRef.current.style.transition = 'none';
+        const prevY = -110 + progress * 110;
+        const prevScale = 0.92 + 0.08 * progress;
+        const prevOpacity = progress;
+        prevCardRef.current.style.transform = `translate3d(0, ${prevY}%, 0) scale(${prevScale})`;
+        prevCardRef.current.style.opacity = `${prevOpacity}`;
+      }
+    });
+  };
+
   const handleNext = useCallback(() => {
-    if (currentIndex < bites.length - 1 && !isTransitioning) {
+    if (currentIndex < bites.length - 1 && !isAnimating.current) {
+      isAnimating.current = true;
       light();
-      setIsTransitioning(true);
-      setSlideDirection('next');
+
+      if (activeCardRef.current) {
+        activeCardRef.current.style.transition = 'transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease-out';
+        activeCardRef.current.style.transform = 'translate3d(0, -115%, 0) scale(0.9) rotate(-2deg)';
+        activeCardRef.current.style.opacity = '0';
+      }
+
+      if (nextCardRef.current) {
+        nextCardRef.current.style.transition = 'transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease-out';
+        nextCardRef.current.style.transform = 'translate3d(0, 0, 0) scale(1)';
+        nextCardRef.current.style.opacity = '1';
+      }
 
       setTimeout(() => {
         onChangeIndex(currentIndex + 1);
-        setSlideDirection(null);
-        setIsTransitioning(false);
+        resetCardStyles();
+        isAnimating.current = false;
       }, 260);
     }
-  }, [currentIndex, bites.length, isTransitioning, onChangeIndex, light]);
+  }, [currentIndex, bites.length, onChangeIndex, light, resetCardStyles]);
 
   const handlePrev = useCallback(() => {
-    if (currentIndex > 0 && !isTransitioning) {
+    if (currentIndex > 0 && !isAnimating.current) {
+      isAnimating.current = true;
       light();
-      setIsTransitioning(true);
-      setSlideDirection('prev');
+
+      if (activeCardRef.current) {
+        activeCardRef.current.style.transition = 'transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.24s ease-out';
+        activeCardRef.current.style.transform = 'translate3d(0, 115%, 0) scale(0.9) rotate(2deg)';
+        activeCardRef.current.style.opacity = '0';
+      }
+
+      if (prevCardRef.current) {
+        prevCardRef.current.style.transition = 'transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease-out';
+        prevCardRef.current.style.transform = 'translate3d(0, 0, 0) scale(1)';
+        prevCardRef.current.style.opacity = '1';
+      }
 
       setTimeout(() => {
         onChangeIndex(currentIndex - 1);
-        setSlideDirection(null);
-        setIsTransitioning(false);
+        resetCardStyles();
+        isAnimating.current = false;
       }, 260);
     }
-  }, [currentIndex, isTransitioning, onChangeIndex, light]);
+  }, [currentIndex, onChangeIndex, light, resetCardStyles]);
 
-  // Keyboard Navigation
+  // Touch & Pointer Gesture Listeners
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (isAnimating.current) return;
+    isDragging.current = true;
+    startY.current = e.clientY;
+    currentY.current = e.clientY;
+    startTime.current = Date.now();
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!isDragging.current || isAnimating.current) return;
+    currentY.current = e.clientY;
+    const diff = currentY.current - startY.current;
+    updateDragTransforms(diff);
+  };
+
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (!isDragging.current || isAnimating.current) return;
+    isDragging.current = false;
+    (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
+
+    const diff = currentY.current - startY.current;
+    const duration = Date.now() - startTime.current;
+    const velocity = Math.abs(diff) / Math.max(duration, 1);
+
+    const SWIPE_THRESHOLD = 55;
+    const isFlick = velocity > 0.38 && Math.abs(diff) > 25;
+
+    if ((diff < -SWIPE_THRESHOLD || (isFlick && diff < 0)) && currentIndex < bites.length - 1) {
+      handleNext();
+    } else if ((diff > SWIPE_THRESHOLD || (isFlick && diff > 0)) && currentIndex > 0) {
+      handlePrev();
+    } else {
+      resetCardStyles();
+    }
+  };
+
+  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown' || e.key === ' ' || e.key === 'j') {
@@ -77,14 +201,14 @@ export const Deck: React.FC<DeckProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleNext, handlePrev]);
 
-  // Mouse Wheel / Trackpad with acceleration throttling
+  // Wheel / Trackpad listener with smooth throttling
   useEffect(() => {
     let lastWheelTime = 0;
     const handleWheel = (e: WheelEvent) => {
       const now = Date.now();
-      if (now - lastWheelTime < 450) return;
+      if (now - lastWheelTime < 420 || isAnimating.current) return;
 
-      if (Math.abs(e.deltaY) > 30) {
+      if (Math.abs(e.deltaY) > 28) {
         lastWheelTime = now;
         if (e.deltaY > 0) {
           handleNext();
@@ -101,71 +225,15 @@ export const Deck: React.FC<DeckProps> = ({
     }
   }, [handleNext, handlePrev]);
 
-  // Touch Drag Handlers
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (isTransitioning) return;
-    touchStartY.current = e.touches[0].clientY;
-    touchCurrentY.current = e.touches[0].clientY;
-    touchStartTime.current = Date.now();
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartY.current === null || isTransitioning) return;
-    touchCurrentY.current = e.touches[0].clientY;
-    const diff = touchCurrentY.current - touchStartY.current;
-
-    // Resistance at bounds
-    if ((currentIndex === 0 && diff > 0) || (currentIndex === bites.length - 1 && diff < 0)) {
-      setDragOffset(diff * 0.25);
-    } else {
-      setDragOffset(diff);
-    }
-  };
-
-  const handleTouchEnd = () => {
-    if (touchStartY.current !== null && touchCurrentY.current !== null && !isTransitioning) {
-      const diff = touchCurrentY.current - touchStartY.current;
-      const duration = Date.now() - touchStartTime.current;
-      const velocity = Math.abs(diff) / Math.max(duration, 1);
-
-      const SWIPE_THRESHOLD = 50;
-      const isFastFlick = velocity > 0.45 && Math.abs(diff) > 25;
-
-      if ((diff < -SWIPE_THRESHOLD || (isFastFlick && diff < 0)) && currentIndex < bites.length - 1) {
-        // Swipe Up -> Next
-        light();
-        setIsTransitioning(true);
-        setSlideDirection('next');
-        setTimeout(() => {
-          onChangeIndex(currentIndex + 1);
-          setSlideDirection(null);
-          setDragOffset(0);
-          setIsTransitioning(false);
-        }, 220);
-      } else if ((diff > SWIPE_THRESHOLD || (isFastFlick && diff > 0)) && currentIndex > 0) {
-        // Swipe Down -> Prev
-        light();
-        setIsTransitioning(true);
-        setSlideDirection('prev');
-        setTimeout(() => {
-          onChangeIndex(currentIndex - 1);
-          setSlideDirection(null);
-          setDragOffset(0);
-          setIsTransitioning(false);
-        }, 220);
-      } else {
-        // Snap back
-        setDragOffset(0);
-      }
-    }
-    touchStartY.current = null;
-    touchCurrentY.current = null;
-  };
+  // Clean initial state on index change
+  useEffect(() => {
+    resetCardStyles();
+  }, [currentIndex, resetCardStyles]);
 
   if (!bites || bites.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center p-6 text-center text-zinc-500">
-        No Brain Bites available in this section.
+        No BrainBits in this section.
       </div>
     );
   }
@@ -177,29 +245,30 @@ export const Deck: React.FC<DeckProps> = ({
   return (
     <div
       ref={containerRef}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      className="relative flex-1 w-full h-full flex flex-col items-center justify-center overflow-hidden touch-none"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      className="relative flex-1 w-full h-full flex flex-col items-center justify-center overflow-hidden touch-none select-none cursor-grab active:cursor-grabbing"
     >
-      {/* Dynamic Ambient Background Aura Radial Glow */}
+      {/* Dynamic Ambient Background Aura Glow */}
       <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[540px] h-[540px] rounded-full pointer-events-none blur-[140px] opacity-25 dark:opacity-40 transition-all duration-700 ease-out"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[580px] h-[580px] rounded-full pointer-events-none blur-[150px] opacity-25 dark:opacity-40 transition-colors duration-700 ease-out"
         style={{
           backgroundColor: currentAura.hex,
-          transform: `translate(-50%, calc(-50% + ${dragOffset * 0.25}px))`,
         }}
       />
 
-      {/* Card Deck Stage */}
-      <div className="relative z-10 w-full max-w-[440px] flex items-center justify-center px-4">
-        {/* Previous Card (visible when pulling down) */}
-        {prevBite && dragOffset > 10 && (
+      {/* 3D Physical Card Deck Stage */}
+      <div className="relative z-10 w-full max-w-[440px] flex items-center justify-center px-4 will-change-transform">
+        {/* PREVIOUS CARD (above viewport) */}
+        {prevBite && (
           <div
-            className="absolute inset-x-0 transition-opacity duration-200 pointer-events-none"
+            ref={prevCardRef}
+            className="absolute inset-x-0 pointer-events-none will-change-transform"
             style={{
-              transform: `translateY(calc(-100% + ${dragOffset}px - 20px)) scale(0.94)`,
-              opacity: Math.min(dragOffset / 120, 0.9),
+              transform: 'translate3d(0, -110%, 0) scale(0.92)',
+              opacity: 0,
             }}
           >
             <Card
@@ -213,45 +282,14 @@ export const Deck: React.FC<DeckProps> = ({
           </div>
         )}
 
-        {/* Current Active Physical Card */}
-        <div
-          className={`w-full transition-all ease-out ${
-            isTransitioning ? 'duration-250' : dragOffset === 0 ? 'duration-300' : 'duration-0'
-          }`}
-          style={{
-            transform:
-              slideDirection === 'next'
-                ? 'translateY(-110%) scale(0.92)'
-                : slideDirection === 'prev'
-                ? 'translateY(110%) scale(0.92)'
-                : `translateY(${dragOffset}px) scale(${1 - Math.abs(dragOffset) * 0.0004})`,
-            opacity: isTransitioning ? 0.3 : 1,
-          }}
-        >
-          <Card
-            bite={currentBite}
-            aura={currentAura}
-            isBookmarked={isBookmarked(currentBite)}
-            onToggleBookmark={() => onToggleBookmark(currentBite)}
-            index={currentIndex}
-            isDark={isDark}
-          />
-        </div>
-
-        {/* Next Card (visible when pulling up or during next transition) */}
-        {nextBite && (dragOffset < -10 || slideDirection === 'next') && (
+        {/* NEXT CARD (resting underneath active card with depth) */}
+        {nextBite && (
           <div
-            className={`absolute inset-x-0 pointer-events-none transition-all ${
-              isTransitioning ? 'duration-250 ease-out' : 'duration-0'
-            }`}
+            ref={nextCardRef}
+            className="absolute inset-x-0 pointer-events-none will-change-transform"
             style={{
-              transform:
-                slideDirection === 'next'
-                  ? 'translateY(0) scale(1)'
-                  : `translateY(calc(100% + ${dragOffset}px + 20px)) scale(${
-                      0.92 + Math.min(Math.abs(dragOffset) / 300, 0.08)
-                    })`,
-              opacity: slideDirection === 'next' ? 1 : Math.min(Math.abs(dragOffset) / 80, 0.85),
+              transform: 'translate3d(0, 22px, 0) scale(0.92)',
+              opacity: 0.5,
             }}
           >
             <Card
@@ -264,6 +302,25 @@ export const Deck: React.FC<DeckProps> = ({
             />
           </div>
         )}
+
+        {/* ACTIVE CARD */}
+        <div
+          ref={activeCardRef}
+          className="w-full relative z-20 will-change-transform"
+          style={{
+            transform: 'translate3d(0, 0, 0) scale(1)',
+            opacity: 1,
+          }}
+        >
+          <Card
+            bite={currentBite}
+            aura={currentAura}
+            isBookmarked={isBookmarked(currentBite)}
+            onToggleBookmark={() => onToggleBookmark(currentBite)}
+            index={currentIndex}
+            isDark={isDark}
+          />
+        </div>
       </div>
 
       {/* Subtle Swipe Cue Indicator */}

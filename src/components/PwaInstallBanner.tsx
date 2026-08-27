@@ -52,7 +52,7 @@ export const PwaInstallBanner: React.FC = () => {
           🧠
         </div>
         <div className="min-w-0">
-          <h3 className="text-xs font-bold truncate">Install Brain Bites PWA</h3>
+          <h3 className="text-xs font-bold truncate">Install BrainBits PWA</h3>
           <p className="text-[11px] text-zinc-400 truncate">Read daily mind fuel 100% offline</p>
         </div>
       </div>

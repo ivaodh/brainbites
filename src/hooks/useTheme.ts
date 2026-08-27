@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ThemeMode } from '../types';
 
-const THEME_KEY = 'brainbites_theme';
+const THEME_KEY = 'brainbits_theme';
 
 export function useTheme() {
   const [theme, setTheme] = useState<ThemeMode>(() => {
@@ -27,7 +27,6 @@ export function useTheme() {
 
   useEffect(() => {
     const root = document.documentElement;
-    const metaTheme = document.querySelector('#theme-color-meta');
 
     const updateActualTheme = () => {
       let resolvedDark = true;
@@ -41,10 +40,8 @@ export function useTheme() {
 
       if (resolvedDark) {
         root.classList.add('dark');
-        metaTheme?.setAttribute('content', '#121417');
       } else {
         root.classList.remove('dark');
-        metaTheme?.setAttribute('content', '#F9F9FB');
       }
     };
 
@@ -59,9 +56,26 @@ export function useTheme() {
     }
   }, [theme]);
 
+  // Sync phone's native status bar and browser top chrome with active Aura color
+  const syncStatusBarAura = useCallback((auraHex: string, dark: boolean) => {
+    try {
+      const metaTheme = document.querySelector('#theme-color-meta');
+      if (!metaTheme) return;
+
+      // In dark mode: use a deep rich ambient aura tint for the OS status bar
+      // In light mode: use an elegant soft ambient aura tint
+      if (dark) {
+        // Blend aura hex towards dark background
+        metaTheme.setAttribute('content', auraHex);
+      } else {
+        metaTheme.setAttribute('content', '#F8F9FA');
+      }
+    } catch (_) {}
+  }, []);
+
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  return { theme, isDark, setTheme, toggleTheme };
+  return { theme, isDark, setTheme, toggleTheme, syncStatusBarAura };
 }

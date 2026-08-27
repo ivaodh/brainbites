@@ -23,7 +23,7 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
   const categories: { id: CategoryFilter; label: string; icon: React.ReactNode; desc: string }[] = [
     {
       id: 'ALL',
-      label: 'All Brain Bites',
+      label: 'All BrainBits',
       icon: <Layers className="w-5 h-5 text-purple-500" />,
       desc: 'Balanced infinite stream of trivia, puzzles, quizzes & wisdom',
     },

@@ -55,12 +55,12 @@ export const Card: React.FC<CardProps> = ({
     if (bite.author) shareText += `\n— ${bite.author}`;
     if (bite.detail) shareText += `\n\n${bite.detail}`;
     if (bite.answer) shareText += `\n\nAnswer: ${bite.answer}`;
-    shareText += `\n\nvia Brain Bites`;
+    shareText += `\n\nvia BrainBits`;
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `Brain Bite: ${bite.tag}`,
+          title: `BrainBit: ${bite.tag}`,
           text: shareText,
         });
         return;
@@ -299,7 +299,7 @@ export const Card: React.FC<CardProps> = ({
         <div className="mt-5 pt-4 border-t border-black/5 dark:border-white/5 flex items-center justify-between text-[11px] text-zinc-400 dark:text-zinc-500 font-medium">
           <span className="flex items-center gap-1">
             <Sparkles className="w-3 h-3 text-amber-400" />
-            <span>Verified Brain Bite</span>
+            <span>Verified BrainBit</span>
           </span>
           <span className="opacity-70 font-semibold">{aura.name}</span>
         </div>
