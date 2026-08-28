@@ -1,7 +1,6 @@
 import React from 'react';
 import { Sun, Moon, Bookmark, Compass, Search } from 'lucide-react';
 import { CategoryFilter } from '../types';
-import { useHaptics } from '../hooks/useHaptics';
 
 interface HeaderProps {
   currentIndex: number;
@@ -24,7 +23,6 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenBookmarks,
   bookmarkCount,
 }) => {
-  const { light } = useHaptics();
 
   const getCategoryLabel = () => {
     switch (currentCategory) {
@@ -62,7 +60,6 @@ export const Header: React.FC<HeaderProps> = ({
           </h1>
           <button
             onClick={() => {
-              light();
               onOpenCategoryModal();
             }}
             className="flex items-center gap-1 text-[11.5px] font-semibold text-zinc-500 dark:text-zinc-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors mt-0.5"
@@ -78,7 +75,6 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Current Card Progress Pill */}
         <button
           onClick={() => {
-            light();
             onOpenJumpModal();
           }}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-extrabold tracking-wide bg-zinc-100/90 dark:bg-[#1E232B]/90 text-zinc-900 dark:text-zinc-100 border border-black/8 dark:border-white/12 hover:border-purple-500/40 transition-all backdrop-blur-md active:scale-95 shadow-sm"
@@ -91,7 +87,6 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Bookmarks Toggle */}
         <button
           onClick={() => {
-            light();
             onOpenBookmarks();
           }}
           className="relative p-2 rounded-full bg-zinc-100/90 dark:bg-[#1E232B]/90 text-zinc-700 dark:text-zinc-300 border border-black/8 dark:border-white/12 hover:text-amber-500 transition-all backdrop-blur-md active:scale-95 shadow-sm"
@@ -109,7 +104,6 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Theme Toggle */}
         <button
           onClick={() => {
-            light();
             onToggleTheme();
           }}
           className="p-2 rounded-full bg-zinc-100/90 dark:bg-[#1E232B]/90 text-zinc-700 dark:text-zinc-300 border border-black/8 dark:border-white/12 hover:text-purple-500 transition-all backdrop-blur-md active:scale-95 shadow-sm"

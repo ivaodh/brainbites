@@ -74,13 +74,15 @@ export default function App() {
   // Current Aura Color
   const currentAura = useMemo(() => getAuraForIndex(currentIndex), [currentIndex]);
 
-  // Save last seen index when browsing 'ALL'
+  // Save last seen index when browsing 'ALL' asynchronously
   const handleIndexChange = useCallback((newIdx: number) => {
     setCurrentIndex(newIdx);
     if (category === 'ALL') {
-      try {
-        localStorage.setItem(LAST_INDEX_KEY, newIdx.toString());
-      } catch (_) {}
+      setTimeout(() => {
+        try {
+          localStorage.setItem(LAST_INDEX_KEY, newIdx.toString());
+        } catch (_) {}
+      }, 0);
     }
   }, [category]);
 

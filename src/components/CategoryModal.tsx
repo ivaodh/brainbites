@@ -1,7 +1,6 @@
 import React from 'react';
 import { X, Sparkles, HelpCircle, BookOpen, Quote, Bookmark, Layers } from 'lucide-react';
 import { CategoryFilter } from '../types';
-import { useHaptics } from '../hooks/useHaptics';
 
 interface CategoryModalProps {
   isOpen: boolean;
@@ -16,8 +15,6 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
   currentCategory,
   onSelectCategory,
 }) => {
-  const { light } = useHaptics();
-
   if (!isOpen) return null;
 
   const categories: { id: CategoryFilter; label: string; icon: React.ReactNode; desc: string }[] = [
@@ -83,10 +80,7 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
             </p>
           </div>
           <button
-            onClick={() => {
-              light();
-              onClose();
-            }}
+            onClick={onClose}
             className="p-2 rounded-full text-zinc-500 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -102,7 +96,6 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
               <button
                 key={cat.id}
                 onClick={() => {
-                  light();
                   onSelectCategory(cat.id);
                   onClose();
                 }}

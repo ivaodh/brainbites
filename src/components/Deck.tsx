@@ -3,7 +3,6 @@ import { ChevronUp } from 'lucide-react';
 import { BrainBite, AuraColor } from '../types';
 import { Card } from './Card';
 import { getAuraForIndex } from '../data/bites';
-import { useHaptics } from '../hooks/useHaptics';
 
 interface DeckProps {
   bites: BrainBite[];
@@ -29,11 +28,10 @@ export const Deck: React.FC<DeckProps> = ({
     return typeof window !== 'undefined' ? window.innerHeight : 800;
   });
 
-  const isScrollingProgrammatically = useRef<boolean>(false);
-  const scrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastReportedIndex = useRef<number>(currentIndex);
-
-  const { light } = useHaptics();
+  // Track whether the user is actively touching or scrolling manually
+  const isUserTouching = useRef<boolean>(false);
+  const isProgrammaticScrolling = useRef<boolean>(false);
+  const scrollSettleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Measure container height accurately
   useEffect(() => {
@@ -56,46 +54,82 @@ export const Deck: React.FC<DeckProps> = ({
     };
   }, []);
 
-  // Sync scroll position when currentIndex changes externally (buttons, jump, random)
+  // Programmatic smooth scroll ONLY when currentIndex is changed externally (buttons, jump, keyboard)
   useEffect(() => {
     const container = containerRef.current;
     if (!container || containerHeight <= 0) return;
 
+    // If user is actively touching/dragging, let native scroll handle it
+    if (isUserTouching.current) return;
+
     const targetTop = currentIndex * containerHeight;
     const currentTop = container.scrollTop;
 
-    if (Math.abs(currentTop - targetTop) > 6) {
-      isScrollingProgrammatically.current = true;
-      lastReportedIndex.current = currentIndex;
+    // Only scroll if there's a real offset difference (e.g. button clicked)
+    if (Math.abs(currentTop - targetTop) > 10) {
+      isProgrammaticScrolling.current = true;
 
       container.scrollTo({
         top: targetTop,
         behavior: 'smooth',
       });
 
-      if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
-      scrollTimeout.current = setTimeout(() => {
-        isScrollingProgrammatically.current = false;
-      }, 400);
+      if (scrollSettleTimer.current) clearTimeout(scrollSettleTimer.current);
+      scrollSettleTimer.current = setTimeout(() => {
+        isProgrammaticScrolling.current = false;
+      }, 350);
     }
   }, [currentIndex, containerHeight]);
 
-  // Handle native scroll and snap change detection
-  const handleScroll = useCallback(() => {
-    if (isScrollingProgrammatically.current || containerHeight <= 0) return;
+  // Settle listener: updates index ONLY after scroll finishes (zero lag during swipe)
+  const handleScrollSettle = useCallback(() => {
+    if (isProgrammaticScrolling.current) return;
 
+    const container = containerRef.current;
+    if (!container || containerHeight <= 0) return;
+
+    const scrollTop = container.scrollTop;
+    const settledIndex = Math.round(scrollTop / containerHeight);
+
+    if (settledIndex >= 0 && settledIndex < bites.length && settledIndex !== currentIndex) {
+      onChangeIndex(settledIndex);
+    }
+  }, [bites.length, containerHeight, currentIndex, onChangeIndex]);
+
+  // Handle scroll events with debounced settle detection
+  const handleScroll = useCallback(() => {
+    if (isProgrammaticScrolling.current) return;
+
+    // Reset settle timer on every scroll tick
+    if (scrollSettleTimer.current) clearTimeout(scrollSettleTimer.current);
+    scrollSettleTimer.current = setTimeout(() => {
+      handleScrollSettle();
+    }, 120);
+  }, [handleScrollSettle]);
+
+  // Native 'scrollend' event support (modern browsers)
+  useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const scrollTop = container.scrollTop;
-    const newIdx = Math.round(scrollTop / containerHeight);
+    const onScrollEnd = () => {
+      if (scrollSettleTimer.current) clearTimeout(scrollSettleTimer.current);
+      handleScrollSettle();
+    };
 
-    if (newIdx >= 0 && newIdx < bites.length && newIdx !== lastReportedIndex.current) {
-      lastReportedIndex.current = newIdx;
-      light();
-      onChangeIndex(newIdx);
-    }
-  }, [bites.length, containerHeight, onChangeIndex, light]);
+    container.addEventListener('scrollend', onScrollEnd);
+    return () => container.removeEventListener('scrollend', onScrollEnd);
+  }, [handleScrollSettle]);
+
+  // User touch & pointer listeners to avoid programmatic conflicts
+  const handleTouchStart = () => {
+    isUserTouching.current = true;
+    isProgrammaticScrolling.current = false;
+  };
+
+  const handleTouchEnd = () => {
+    isUserTouching.current = false;
+  };
 
   // Keyboard navigation
   useEffect(() => {
@@ -127,8 +161,8 @@ export const Deck: React.FC<DeckProps> = ({
     );
   }
 
-  // Virtual window calculation (renders 7 cards around current view for 0 memory overhead)
-  const windowSize = 3;
+  // Generous virtual window (renders ±5 cards around active view to prevent any spacer jumping)
+  const windowSize = 5;
   const startIdx = Math.max(0, currentIndex - windowSize);
   const endIdx = Math.min(bites.length, currentIndex + windowSize + 1);
 
@@ -145,14 +179,17 @@ export const Deck: React.FC<DeckProps> = ({
         }}
       />
 
-      {/* Native Continuous Vertical Scroll-Snap Track */}
+      {/* 100% Native Continuous Vertical Scroll-Snap Track */}
       <div
         ref={containerRef}
         onScroll={handleScroll}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onPointerDown={handleTouchStart}
+        onPointerUp={handleTouchEnd}
         className="relative z-10 w-full h-full overflow-y-auto no-scrollbar overscroll-y-contain select-none"
         style={{
           scrollSnapType: 'y mandatory',
-          scrollBehavior: 'smooth',
         }}
       >
         {/* Top Virtual Spacer */}
@@ -160,7 +197,7 @@ export const Deck: React.FC<DeckProps> = ({
           <div style={{ height: `${topSpacerHeight}px` }} aria-hidden="true" />
         )}
 
-        {/* Visible Window of Cards in Continuous Physical Sequence */}
+        {/* Visible Window of Cards in Continuous Physical Track */}
         {bites.slice(startIdx, endIdx).map((bite, i) => {
           const actualIndex = startIdx + i;
           const aura = getAuraForIndex(actualIndex);

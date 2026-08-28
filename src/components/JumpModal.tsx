@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { X, ArrowRight, Shuffle } from 'lucide-react';
-import { useHaptics } from '../hooks/useHaptics';
 
 interface JumpModalProps {
   isOpen: boolean;
@@ -20,7 +19,6 @@ export const JumpModal: React.FC<JumpModalProps> = ({
   onRandom,
 }) => {
   const [targetNumber, setTargetNumber] = useState<string>('');
-  const { light, medium } = useHaptics();
 
   if (!isOpen) return null;
 
@@ -28,7 +26,6 @@ export const JumpModal: React.FC<JumpModalProps> = ({
     e.preventDefault();
     const num = parseInt(targetNumber, 10);
     if (!isNaN(num) && num >= 1 && num <= totalCards) {
-      light();
       onJump(num - 1);
       onClose();
     }
@@ -50,17 +47,14 @@ export const JumpModal: React.FC<JumpModalProps> = ({
         <div className="flex items-center justify-between pb-3 border-b border-black/5 dark:border-white/5">
           <div>
             <h2 className="text-base font-extrabold text-zinc-900 dark:text-zinc-50">
-              Jump to Bite
+              Jump to Bit
             </h2>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Enter any card number or scrub the timeline
             </p>
           </div>
           <button
-            onClick={() => {
-              light();
-              onClose();
-            }}
+            onClick={onClose}
             className="p-2 rounded-full text-zinc-500 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
           >
             <X className="w-4 h-4" />
@@ -93,7 +87,7 @@ export const JumpModal: React.FC<JumpModalProps> = ({
             <div className="flex items-center justify-between text-xs font-semibold text-zinc-500 dark:text-zinc-400">
               <span>Start</span>
               <span className="font-extrabold text-purple-600 dark:text-purple-400 text-sm">
-                Bite #{currentIndex + 1}
+                Bit #{currentIndex + 1}
               </span>
               <span>Ahead &rarr;</span>
             </div>
@@ -111,14 +105,13 @@ export const JumpModal: React.FC<JumpModalProps> = ({
           <button
             type="button"
             onClick={() => {
-              medium();
               onRandom();
               onClose();
             }}
             className="w-full py-3 rounded-2xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs font-bold flex items-center justify-center gap-2 border border-black/5 dark:border-white/5 transition-all"
           >
             <Shuffle className="w-3.5 h-3.5" />
-            <span>Surprise Me (Random Bite)</span>
+            <span>Surprise Me (Random Bit)</span>
           </button>
         </form>
       </div>

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Share2, Bookmark, Check, Sparkles, HelpCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { BrainBite, AuraColor } from '../types';
-import { useHaptics } from '../hooks/useHaptics';
 
 interface CardProps {
   bite: BrainBite;
@@ -22,7 +21,6 @@ export const Card: React.FC<CardProps> = ({
 }) => {
   const [revealed, setRevealed] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const { light, success } = useHaptics();
 
   // Reset reveal state when bite changes
   useEffect(() => {
@@ -32,7 +30,6 @@ export const Card: React.FC<CardProps> = ({
   const handleReveal = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
     if (!revealed) {
-      success();
       // Trigger celebratory micro-confetti
       confetti({
         particleCount: 28,
@@ -41,15 +38,12 @@ export const Card: React.FC<CardProps> = ({
         colors: [aura.hex, '#10B981', '#F59E0B', '#38BDF8'],
         disableForReducedMotion: true,
       });
-    } else {
-      light();
     }
     setRevealed(!revealed);
   };
 
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    light();
 
     let shareText = `💡 ${bite.tag}\n\n"${bite.text}"`;
     if (bite.author) shareText += `\n— ${bite.author}`;
@@ -147,7 +141,6 @@ export const Card: React.FC<CardProps> = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                light();
                 onToggleBookmark();
               }}
               className="p-2 rounded-full text-zinc-400 dark:text-zinc-400 hover:text-amber-500 dark:hover:text-amber-400 hover:bg-black/5 dark:hover:bg-white/10 transition-all active:scale-90"
