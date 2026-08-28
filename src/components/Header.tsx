@@ -23,7 +23,6 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenBookmarks,
   bookmarkCount,
 }) => {
-
   const getCategoryLabel = () => {
     switch (currentCategory) {
       case 'ALL':
@@ -46,7 +45,12 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-4 sm:px-6 py-3.5 pt-safe bg-white/40 dark:bg-[#121417]/60 backdrop-blur-xl border-b border-black/5 dark:border-white/5 transition-colors duration-500">
+    <header
+      className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 sm:px-6 pb-3.5 bg-white/60 dark:bg-[#121417]/75 backdrop-blur-xl border-b border-black/5 dark:border-white/5 transition-colors duration-500"
+      style={{
+        paddingTop: 'max(env(safe-area-inset-top, 0px), 14px)',
+      }}
+    >
       {/* Brand & Category */}
       <div className="flex items-center gap-2.5">
         <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-500 via-sky-400 to-amber-400 p-[1.5px] shadow-sm flex-shrink-0">
@@ -59,9 +63,7 @@ export const Header: React.FC<HeaderProps> = ({
             BrainBits
           </h1>
           <button
-            onClick={() => {
-              onOpenCategoryModal();
-            }}
+            onClick={onOpenCategoryModal}
             className="flex items-center gap-1 text-[11.5px] font-semibold text-zinc-500 dark:text-zinc-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors mt-0.5"
           >
             <Compass className="w-3 h-3 text-purple-500" />
@@ -70,13 +72,11 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Index Pill & Quick Actions (Only current position, NO total count numbers) */}
+      {/* Index Pill & Quick Actions (Properly safe-padded for iOS status bar) */}
       <div className="flex items-center gap-2">
         {/* Current Card Progress Pill */}
         <button
-          onClick={() => {
-            onOpenJumpModal();
-          }}
+          onClick={onOpenJumpModal}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-extrabold tracking-wide bg-zinc-100/90 dark:bg-[#1E232B]/90 text-zinc-900 dark:text-zinc-100 border border-black/8 dark:border-white/12 hover:border-purple-500/40 transition-all backdrop-blur-md active:scale-95 shadow-sm"
           title="Jump to Bit"
         >
@@ -86,9 +86,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Bookmarks Toggle */}
         <button
-          onClick={() => {
-            onOpenBookmarks();
-          }}
+          onClick={onOpenBookmarks}
           className="relative p-2 rounded-full bg-zinc-100/90 dark:bg-[#1E232B]/90 text-zinc-700 dark:text-zinc-300 border border-black/8 dark:border-white/12 hover:text-amber-500 transition-all backdrop-blur-md active:scale-95 shadow-sm"
           title="Bookmarks"
           aria-label="Bookmarks"
@@ -103,9 +101,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Theme Toggle */}
         <button
-          onClick={() => {
-            onToggleTheme();
-          }}
+          onClick={onToggleTheme}
           className="p-2 rounded-full bg-zinc-100/90 dark:bg-[#1E232B]/90 text-zinc-700 dark:text-zinc-300 border border-black/8 dark:border-white/12 hover:text-purple-500 transition-all backdrop-blur-md active:scale-95 shadow-sm"
           title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           aria-label="Toggle theme"

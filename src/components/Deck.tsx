@@ -209,6 +209,8 @@ export const Deck: React.FC<DeckProps> = ({
               className="w-full flex items-center justify-center px-4"
               style={{
                 height: `${containerHeight}px`,
+                paddingTop: 'max(calc(env(safe-area-inset-top, 0px) + 56px), 64px)',
+                paddingBottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 64px), 72px)',
                 scrollSnapAlign: 'center',
                 scrollSnapStop: 'always',
               }}

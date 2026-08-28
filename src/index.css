@@ -6,6 +6,10 @@
   :root {
     --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
     --font-serif: 'Newsreader', Georgia, serif;
+    --sat: env(safe-area-inset-top, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
+    --sar: env(safe-area-inset-right, 0px);
   }
 
   body {
@@ -40,4 +44,12 @@
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* iOS Safe Area Padding Helpers */
+.pt-safe {
+  padding-top: max(env(safe-area-inset-top, 0px), 14px);
+}
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
 }

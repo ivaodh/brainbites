@@ -68,7 +68,12 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
       <div className="absolute inset-0" onClick={onClose} />
 
       {/* Modal Sheet */}
-      <div className="relative z-10 w-full max-w-md max-h-[85vh] overflow-y-auto rounded-t-[32px] sm:rounded-[32px] bg-white dark:bg-[#1E232B] border border-black/10 dark:border-white/10 shadow-2xl p-6 animate-in slide-in-from-bottom-8 duration-300">
+      <div
+        className="relative z-10 w-full max-w-md max-h-[85vh] overflow-y-auto rounded-t-[32px] sm:rounded-[32px] bg-white dark:bg-[#1E232B] border border-black/10 dark:border-white/10 shadow-2xl p-6 animate-in slide-in-from-bottom-8 duration-300"
+        style={{
+          paddingBottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 24px), 24px)',
+        }}
+      >
         {/* Modal Header */}
         <div className="flex items-center justify-between pb-4 border-b border-black/5 dark:border-white/5">
           <div>

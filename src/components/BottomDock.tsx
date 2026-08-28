@@ -22,7 +22,12 @@ export const BottomDock: React.FC<BottomDockProps> = ({
   onOpenCategoryModal,
 }) => {
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 p-1.5 rounded-full bg-white/80 dark:bg-[#1E2228]/85 backdrop-blur-xl border border-black/10 dark:border-white/10 shadow-2xl transition-all">
+    <div
+      className="fixed left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5 p-1.5 rounded-full bg-white/80 dark:bg-[#1E2228]/85 backdrop-blur-xl border border-black/10 dark:border-white/10 shadow-2xl transition-all"
+      style={{
+        bottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 16px), 16px)',
+      }}
+    >
       {/* Previous Card Button */}
       <button
         onClick={onPrev}
