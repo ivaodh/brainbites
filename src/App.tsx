@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { BrainBite, CategoryFilter } from './types';
 import { fetchBrainBites, getAuraForIndex } from './data/bites';
 import { useTheme } from './hooks/useTheme';
@@ -74,15 +74,17 @@ export default function App() {
   // Current Aura Color
   const currentAura = useMemo(() => getAuraForIndex(currentIndex), [currentIndex]);
 
-  // Save last seen index when browsing 'ALL' asynchronously
+  // Save last seen index when browsing 'ALL' (debounced to avoid write thrash)
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleIndexChange = useCallback((newIdx: number) => {
     setCurrentIndex(newIdx);
     if (category === 'ALL') {
-      setTimeout(() => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(() => {
         try {
           localStorage.setItem(LAST_INDEX_KEY, newIdx.toString());
         } catch (_) {}
-      }, 0);
+      }, 500);
     }
   }, [category]);
 

@@ -13,7 +13,7 @@ interface HeaderProps {
   bookmarkCount: number;
 }
 
-export const Header: React.FC<HeaderProps> = ({
+export const Header: React.FC<HeaderProps> = React.memo(({
   currentIndex,
   currentCategory,
   isDark,
@@ -111,4 +111,4 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
     </header>
   );
-};
+});

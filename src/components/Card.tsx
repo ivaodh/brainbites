@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Share2, Bookmark, Check, Sparkles, HelpCircle } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { BrainBite, AuraColor } from '../types';
 
 interface CardProps {
@@ -12,7 +11,7 @@ interface CardProps {
   isDark?: boolean;
 }
 
-export const Card: React.FC<CardProps> = ({
+const CardInner: React.FC<CardProps> = ({
   bite,
   aura,
   isBookmarked,
@@ -27,20 +26,23 @@ export const Card: React.FC<CardProps> = ({
     setRevealed(false);
   }, [bite]);
 
-  const handleReveal = (e: React.MouseEvent | React.TouchEvent) => {
+  const handleReveal = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
     if (!revealed) {
-      // Trigger celebratory micro-confetti
-      confetti({
-        particleCount: 28,
-        spread: 55,
-        origin: { y: 0.65 },
-        colors: [aura.hex, '#10B981', '#F59E0B', '#38BDF8'],
-        disableForReducedMotion: true,
+      // Lazy-load confetti only when first needed
+      import('canvas-confetti').then((mod) => {
+        const confetti = mod.default;
+        confetti({
+          particleCount: 28,
+          spread: 55,
+          origin: { y: 0.65 },
+          colors: [aura.hex, '#10B981', '#F59E0B', '#38BDF8'],
+          disableForReducedMotion: true,
+        });
       });
     }
     setRevealed(!revealed);
-  };
+  }, [revealed, aura.hex]);
 
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -105,7 +107,7 @@ export const Card: React.FC<CardProps> = ({
 
       {/* Main Physical Glass Card */}
       <div
-        className={`relative w-full rounded-[28px] p-6 sm:p-7 transition-all duration-300 overflow-hidden ${
+        className={`relative w-full rounded-[28px] p-6 sm:p-7 transition-[box-shadow] duration-300 overflow-hidden ${
           isDark
             ? 'bg-[#1E232B] text-zinc-50 border border-white/12'
             : 'bg-white text-zinc-900 border border-black/8'
@@ -300,3 +302,5 @@ export const Card: React.FC<CardProps> = ({
     </div>
   );
 };
+
+export const Card = React.memo(CardInner);

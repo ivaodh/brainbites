@@ -161,8 +161,8 @@ export const Deck: React.FC<DeckProps> = ({
     );
   }
 
-  // Generous virtual window (renders ±5 cards around active view to prevent any spacer jumping)
-  const windowSize = 5;
+  // Virtual window (renders ±3 cards around active view — enough for smooth snapping)
+  const windowSize = 3;
   const startIdx = Math.max(0, currentIndex - windowSize);
   const endIdx = Math.min(bites.length, currentIndex + windowSize + 1);
 
@@ -173,7 +173,7 @@ export const Deck: React.FC<DeckProps> = ({
     <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden">
       {/* Ambient Background Aura Radial Glow */}
       <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[580px] h-[580px] rounded-full pointer-events-none blur-[150px] opacity-25 dark:opacity-40 transition-colors duration-700 ease-out"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[580px] h-[580px] rounded-full pointer-events-none blur-[80px] opacity-25 dark:opacity-40 transition-colors duration-400 ease-out"
         style={{
           backgroundColor: currentAura.hex,
         }}
@@ -190,6 +190,7 @@ export const Deck: React.FC<DeckProps> = ({
         className="relative z-10 w-full h-full overflow-y-auto no-scrollbar overscroll-y-contain select-none"
         style={{
           scrollSnapType: 'y mandatory',
+          willChange: 'scroll-position',
         }}
       >
         {/* Top Virtual Spacer */}
@@ -213,6 +214,7 @@ export const Deck: React.FC<DeckProps> = ({
                 paddingBottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 64px), 72px)',
                 scrollSnapAlign: 'center',
                 scrollSnapStop: 'always',
+                contain: 'layout style paint',
               }}
             >
               <Card

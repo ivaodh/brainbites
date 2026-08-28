@@ -12,7 +12,7 @@ interface BottomDockProps {
   onOpenCategoryModal: () => void;
 }
 
-export const BottomDock: React.FC<BottomDockProps> = ({
+export const BottomDock: React.FC<BottomDockProps> = React.memo(({
   currentIndex,
   totalCards,
   currentCategory,
@@ -70,4 +70,4 @@ export const BottomDock: React.FC<BottomDockProps> = ({
       </button>
     </div>
   );
-};
+});
