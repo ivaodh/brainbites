@@ -46,9 +46,9 @@ export const Header: React.FC<HeaderProps> = React.memo(({
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 sm:px-6 pb-3.5 bg-white/60 dark:bg-[#121417]/75 backdrop-blur-xl border-b border-black/5 dark:border-white/5 transition-colors duration-500"
+      className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 sm:px-6 pb-3 bg-white/80 dark:bg-[#121417]/85 backdrop-blur-md border-b border-black/5 dark:border-white/5 transition-colors duration-300"
       style={{
-        paddingTop: 'max(env(safe-area-inset-top, 0px), 14px)',
+        paddingTop: 'max(env(safe-area-inset-top, 0px), 12px)',
       }}
     >
       {/* Brand & Category */}
@@ -72,12 +72,12 @@ export const Header: React.FC<HeaderProps> = React.memo(({
         </div>
       </div>
 
-      {/* Index Pill & Quick Actions (Properly safe-padded for iOS status bar) */}
+      {/* Index Pill & Quick Actions */}
       <div className="flex items-center gap-2">
         {/* Current Card Progress Pill */}
         <button
           onClick={onOpenJumpModal}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-extrabold tracking-wide bg-zinc-100/90 dark:bg-[#1E232B]/90 text-zinc-900 dark:text-zinc-100 border border-black/8 dark:border-white/12 hover:border-purple-500/40 transition-all backdrop-blur-md active:scale-95 shadow-sm"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-extrabold tracking-wide bg-black/5 dark:bg-white/10 text-zinc-900 dark:text-zinc-100 border border-black/5 dark:border-white/10 hover:border-purple-500/40 transition-all active:scale-95 shadow-sm"
           title="Jump to Bit"
         >
           <Search className="w-3 h-3 opacity-60 text-purple-500" />
@@ -87,7 +87,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
         {/* Bookmarks Toggle */}
         <button
           onClick={onOpenBookmarks}
-          className="relative p-2 rounded-full bg-zinc-100/90 dark:bg-[#1E232B]/90 text-zinc-700 dark:text-zinc-300 border border-black/8 dark:border-white/12 hover:text-amber-500 transition-all backdrop-blur-md active:scale-95 shadow-sm"
+          className="relative p-2 rounded-full bg-black/5 dark:bg-white/10 text-zinc-700 dark:text-zinc-300 border border-black/5 dark:border-white/10 hover:text-amber-500 transition-all active:scale-95 shadow-sm"
           title="Bookmarks"
           aria-label="Bookmarks"
         >
@@ -102,7 +102,7 @@ export const Header: React.FC<HeaderProps> = React.memo(({
         {/* Theme Toggle */}
         <button
           onClick={onToggleTheme}
-          className="p-2 rounded-full bg-zinc-100/90 dark:bg-[#1E232B]/90 text-zinc-700 dark:text-zinc-300 border border-black/8 dark:border-white/12 hover:text-purple-500 transition-all backdrop-blur-md active:scale-95 shadow-sm"
+          className="p-2 rounded-full bg-black/5 dark:bg-white/10 text-zinc-700 dark:text-zinc-300 border border-black/5 dark:border-white/10 hover:text-purple-500 transition-all active:scale-95 shadow-sm"
           title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           aria-label="Toggle theme"
         >

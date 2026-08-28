@@ -23,7 +23,7 @@ export const BottomDock: React.FC<BottomDockProps> = React.memo(({
 }) => {
   return (
     <div
-      className="fixed left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5 p-1.5 rounded-full bg-white/80 dark:bg-[#1E2228]/85 backdrop-blur-xl border border-black/10 dark:border-white/10 shadow-2xl transition-all"
+      className="fixed left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5 p-1.5 rounded-full bg-white/85 dark:bg-[#1E2228]/90 backdrop-blur-md border border-black/8 dark:border-white/10 shadow-xl transition-all"
       style={{
         bottom: 'max(calc(env(safe-area-inset-bottom, 0px) + 16px), 16px)',
       }}

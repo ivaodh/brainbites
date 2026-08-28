@@ -105,7 +105,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-paper-light dark:bg-paper-dark text-zinc-800 dark:text-zinc-200">
+      <div className="h-[100dvh] w-full flex flex-col items-center justify-center bg-[#F8F9FA] dark:bg-[#121417] text-zinc-800 dark:text-zinc-200">
         <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-500 to-amber-400 p-[2px] animate-pulse">
           <div className="w-full h-full rounded-[14px] bg-[#1E232B] flex items-center justify-center text-xl">
             🧠
@@ -120,10 +120,18 @@ export default function App() {
 
   return (
     <div
-      className={`relative h-screen w-screen flex flex-col overflow-hidden select-none transition-colors duration-500 ${
-        isDark ? 'paper-texture-dark text-zinc-100' : 'paper-texture-light text-zinc-900'
+      className={`relative h-[100dvh] w-full flex flex-col overflow-hidden select-none transition-colors duration-300 ${
+        isDark ? 'bg-ambient-dark text-zinc-100' : 'bg-ambient-light text-zinc-900'
       }`}
     >
+      {/* Full-Screen Ambient Aura Glow (Seamless edge-to-edge on iOS) */}
+      <div
+        className="fixed inset-0 pointer-events-none transition-all duration-500 ease-out opacity-20 dark:opacity-30"
+        style={{
+          background: `radial-gradient(ellipse 80% 60% at 50% 45%, ${currentAura.hex}, transparent 75%)`,
+        }}
+      />
+
       {/* PWA Install Banner */}
       <PwaInstallBanner />
 
@@ -142,8 +150,8 @@ export default function App() {
         bookmarkCount={bookmarks.length}
       />
 
-      {/* Main Continuous Vertical Scroll-Snap Deck */}
-      <main className="flex-1 w-full h-full flex flex-col items-center justify-center">
+      {/* Main 3-Slot Gesture Deck */}
+      <main className="flex-1 w-full h-full flex flex-col items-center justify-center relative z-10">
         {filteredBites.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
             <span className="text-4xl mb-3">⭐</span>

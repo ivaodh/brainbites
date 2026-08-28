@@ -1,4 +1,4 @@
-const CACHE_NAME = 'brainbites-v1';
+const CACHE_NAME = 'brainbites-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

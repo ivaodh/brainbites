@@ -107,15 +107,15 @@ const CardInner: React.FC<CardProps> = ({
 
       {/* Main Physical Glass Card */}
       <div
-        className={`relative w-full rounded-[28px] p-6 sm:p-7 transition-[box-shadow] duration-300 overflow-hidden ${
+        className={`relative w-full rounded-[28px] p-6 sm:p-7 transition-all duration-200 overflow-hidden ${
           isDark
-            ? 'bg-[#1E232B] text-zinc-50 border border-white/12'
-            : 'bg-white text-zinc-900 border border-black/8'
+            ? 'bg-[#1E232B] text-zinc-50 border border-white/10 shadow-2xl'
+            : 'bg-white text-zinc-900 border border-black/5 shadow-xl'
         }`}
         style={{
           boxShadow: isDark
-            ? `0 20px 48px -10px ${aura.hex}44, 0 10px 24px -6px rgba(0,0,0,0.65)`
-            : `0 20px 48px -10px ${aura.hex}28, 0 10px 24px -6px rgba(0,0,0,0.08)`,
+            ? `0 12px 36px -8px rgba(0,0,0,0.6), 0 0 0 1px ${aura.hex}22`
+            : `0 12px 36px -8px rgba(0,0,0,0.08), 0 0 0 1px ${aura.hex}22`,
         }}
       >
         {/* Header Row: Category Badge & Actions */}

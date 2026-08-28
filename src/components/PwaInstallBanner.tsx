@@ -46,7 +46,7 @@ export const PwaInstallBanner: React.FC = () => {
   };
 
   return (
-    <div className="fixed top-16 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-md p-3.5 rounded-2xl bg-zinc-900/95 dark:bg-zinc-800/95 text-zinc-100 border border-purple-500/30 shadow-2xl backdrop-blur-xl flex items-center justify-between gap-3 animate-in slide-in-from-top-4 duration-300">
+    <div className="fixed top-16 left-1/2 -translate-x-1/2 z-40 w-[92%] max-w-md p-3.5 rounded-2xl bg-zinc-900/95 dark:bg-zinc-800/95 text-zinc-100 border border-purple-500/30 shadow-xl backdrop-blur-md flex items-center justify-between gap-3 animate-in slide-in-from-top-4 duration-300">
       <div className="flex items-center gap-3 min-w-0">
         <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-500 to-amber-400 flex items-center justify-center text-base flex-shrink-0">
           🧠
